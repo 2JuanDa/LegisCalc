@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LegisCalc</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #f4f6fb;
+      margin: 0;
+      padding: 0;
+      transition: background 0.3s, color 0.3s;
+    }
+    body.dark {
+      background: #121212;
+      color: #eee;
+    }
+    header {
+      background: #0d1b2a;
+      color: white;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+    .theme-toggle {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: white;
+      transition: transform 0.2s;
+    }
+    .theme-toggle:hover {
+      transform: scale(1.1);
+    }
+    .container {
+      max-width: 600px;
+      margin: 2rem auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      transition: box-shadow 0.3s;
+    }
+    body.dark .container {
+      background: #1e1e1e;
+    }
+    button {
+      margin: 0.5rem 0;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      background: #0d1b2a;
+      color: white;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #1b2a3d;
+    }
+    .formulario {
+      display: none;
+      margin-top: 1rem;
+      border-top: 1px solid #ddd;
+      padding-top: 1rem;
+    }
+    .formulario.active {
+      display: block;
+    }
+    input {
+      display: block;
+      margin: 0.5rem 0;
+      padding: 0.5rem;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      transition: border-color 0.3s;
+    }
+    input:focus {
+      border-color: #0d1b2a;
+      outline: none;
+    }
+    pre {
+      background: #eee;
+      padding: 1rem;
+      border-radius: 5px;
+      margin-top: 1rem;
+      overflow: auto;
+    }
+    body.dark pre {
+      background: #333;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>LegisCalc</h1>
+    <button class="theme-toggle" onclick="toggleTheme()">🌓</button>
+  </header>
+  <div class="container">
+    <h2>Seleccione el tipo de cálculo</h2>
+    <button onclick="mostrarFormulario('danios')">Daños y Perjuicios</button>
+    <button onclick="mostrarFormulario('ipc')">Indexación por IPC</button>
+    <button onclick="mostrarFormulario('intereses')">Intereses Moratorios</button>
+    <button onclick="mostrarFormulario('honorarios')">Honorarios Mínimos</button>
+
+    <!-- Formulario Daños y Perjuicios -->
+    <div class="formulario" id="form-danios">
+      <h3>Daños y Perjuicios</h3>
+      <input type="number" id="salario-danios" placeholder="Salario mensual" />
+      <input type="number" id="meses-danios" placeholder="Número de meses" />
+      <input type="number" id="incapacidad-danios" placeholder="% de incapacidad" />
+      <input type="number" id="emergente-danios" placeholder="Daño emergente" />
+      <input type="number" id="moral-danios" placeholder="Daño moral" />
+      <button onclick="calcularDanios()">Calcular</button>
+      <pre id="resultado-danios"></pre>
+    </div>
+
+    <!-- Formulario IPC -->
+    <div class="formulario" id="form-ipc">
+      <h3>Indexación por IPC</h3>
+      <input type="number" id="valor-inicial-ipc" placeholder="Valor inicial" />
+      <input type="number" id="ipc-inicial" placeholder="IPC inicial" />
+      <input type="number" id="ipc-final" placeholder="IPC final" />
+      <button onclick="calcularIPC()">Calcular</button>
+      <pre id="resultado-ipc"></pre>
+    </div>
+
+    <!-- Formulario Intereses Moratorios -->
+    <div class="formulario" id="form-intereses">
+      <h3>Intereses Moratorios</h3>
+      <input type="number" id="valor-mora" placeholder="Valor base" />
+      <input type="number" id="dias-mora" placeholder="Días de mora" />
+      <input type="number" id="tasa-anual" placeholder="Tasa anual (ej. 6 para 6%)" />
+      <button onclick="calcularIntereses()">Calcular</button>
+      <pre id="resultado-intereses"></pre>
+    </div>
+
+    <!-- Formulario Honorarios Mínimos -->
+    <div class="formulario" id="form-honorarios">
+      <h3>Honorarios Mínimos</h3>
+      <input type="number" id="valor-honorarios" placeholder="Valor del proceso" />
+      <button onclick="calcularHonorarios()">Calcular</button>
+      <pre id="resultado-honorarios"></pre>
+    </div>
+  </div>
+
+  <script>
+    function mostrarFormulario(formularioId) {
+      document.querySelectorAll('.formulario').forEach(f => f.classList.remove('active'));
+      document.getElementById('form-' + formularioId).classList.add('active');
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle('dark');
+    }
+
+    function calcularDanios() {
+      const salario = parseFloat(document.getElementById('salario-danios').value);
+      const meses = parseFloat(document.getElementById('meses-danios').value);
+      const incapacidad = parseFloat(document.getElementById('incapacidad-danios').value);
+      const emergente = parseFloat(document.getElementById('emergente-danios').value);
+      const moral = parseFloat(document.getElementById('moral-danios').value);
+
+      if ([salario, meses, incapacidad, emergente, moral].some(isNaN)) {
+        alert('Por favor complete todos los campos.');
+        return;
+      }
+
+      const lucroCesante = salario * meses * (incapacidad / 100);
+      const total = lucroCesante + emergente + moral;
+
+      document.getElementById('resultado-danios').textContent =
+        `Lucro cesante: $${lucroCesante.toFixed(2)}\nTotal indemnización: $${total.toFixed(2)}`;
+    }
+
+    function calcularIPC() {
+      const valorInicial = parseFloat(document.getElementById('valor-inicial-ipc').value);
+      const ipcInicial = parseFloat(document.getElementById('ipc-inicial').value);
+      const ipcFinal = parseFloat(document.getElementById('ipc-final').value);
+
+      if ([valorInicial, ipcInicial, ipcFinal].some(isNaN)) {
+        alert('Por favor complete todos los campos.');
+        return;
+      }
+
+      const valorActualizado = valorInicial * (ipcFinal / ipcInicial);
+      document.getElementById('resultado-ipc').textContent =
+        `Valor actualizado por IPC: $${valorActualizado.toFixed(2)}`;
+    }
+
+    function calcularIntereses() {
+      const valor = parseFloat(document.getElementById('valor-mora').value);
+      const dias = parseFloat(document.getElementById('dias-mora').value);
+      const tasaAnual = parseFloat(document.getElementById('tasa-anual').value) / 100;
+
+      if ([valor, dias, tasaAnual].some(isNaN)) {
+        alert('Por favor complete todos los campos.');
+        return;
+      }
+
+      const intereses = valor * tasaAnual * (dias / 365);
+      document.getElementById('resultado-intereses').textContent =
+        `Intereses moratorios: $${intereses.toFixed(2)}`;
+    }
+
+    function calcularHonorarios() {
+      const valor = parseFloat(document.getElementById('valor-honorarios').value);
+      if (isNaN(valor)) {
+        alert('Por favor ingrese el valor del proceso.');
+        return;
+      }
+
+      let porcentaje = 0.10;
+      if (valor > 50000000) porcentaje = 0.08;
+      if (valor > 200000000) porcentaje = 0.06;
+
+      const honorarios = valor * porcentaje;
+      document.getElementById('resultado-honorarios').textContent =
+        `Honorarios mínimos estimados: $${honorarios.toFixed(2)} (${(porcentaje * 100).toFixed(0)}%)`;
+    }
+  </script>
+</body>
+</html>
